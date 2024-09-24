@@ -48,15 +48,21 @@ def streaming_data():
     import json
     from kafka import KafkaProducer
     import time
+    import logging
+   
+    producer  = KafkaProducer( bootstrap_servers=['broker:29092'], max_block_ms=5000)
+    curr_time = time.time()
     
-    
-    res= get_data()
-    res = format_data(res)
-    # print(json.dumps(res, indent=4))
-    
-    producer  = KafkaProducer( bootstrap_servers=['localhost:9092'], max_block_ms=5000)
-    
-    producer.send('kafka_damo_data_Engineering', json.dumps(res).encode('utf-8'))
+    while True:
+        if time.time() > curr_time + 60:
+            break
+        try:
+            res= get_data()
+            res = format_data(res)
+            producer.send('kafka_damo_data_Engineering', json.dumps(res).encode('utf-8'))
+        except Exception as e:
+            logging.error(f"an error occured--------------- {e}")
+            continue
     
 
 with DAG(
@@ -72,4 +78,4 @@ with DAG(
         python_callable=streaming_data,
     )
     
-streaming_data();
+# streaming_data();
